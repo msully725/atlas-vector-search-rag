@@ -21,13 +21,42 @@ embeddings = OpenAIEmbeddings(openai_api_key=key_param.openai_api_key)
 
 vectorStore = MongoDBAtlasVectorSearch( collection, embeddings )
 
+mongoQuery = [
+    {
+        "$search": {
+            "index": "vector_index",
+            "knnBeta": {
+                "vector": embeddings.embed_query('goku'),
+                "path": "embedding",
+                "k": 2,
+            }
+        }
+    }
+]
+
+mongoQueryVectorSearch = [
+    {
+        "$vectorSearch": {
+            "queryVector": embeddings.embed_query('Who is Goku?'),
+            "path": "embedding",
+            "numCandidates": 2,
+            "index": "vector_index",
+            "limit": 1
+        }
+    }
+]
+
 def query_data(query):
     # Convert question to vector using OpenAI embeddings
     # Perform Atlas Vector Search using Langchain's vectorStore
     # similarity_search returns MongoDB documents most similar to the query    
 
-    docs = vectorStore.similarity_search(query, K=1)
-    as_output = docs[0].page_content
+    # docs = vectorStore.similarity_search(query, K=5)
+    # as_output = docs[0].page_content
+
+    cursor = collection.aggregate(mongoQueryVectorSearch)
+    docs = list(cursor)
+    as_output = docs[0]['text']
 
     # Leveraging Atlas Vector Search paired with Langchain's QARetriever
 
