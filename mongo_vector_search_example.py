@@ -11,8 +11,7 @@ collection = client[dbName][collectionName]
 # Define the text embedding model
 embeddings = OpenAIEmbeddings(openai_api_key=key_param.openai_api_key)
 
-
-def mongoQueryVectorSearch(query):
+def mongoQueryVectorSearchAggregate(query):
     return [
         {
             "$vectorSearch": {
@@ -27,7 +26,7 @@ def mongoQueryVectorSearch(query):
 
 def vector_search_data(query):
     # Convert question to vector using OpenAI embeddings
-    vectorSearchQuery = embeddings.embed_query(query)
+    vectorSearchQuery = mongoQueryVectorSearchAggregate(query)
     cursor = collection.aggregate(vectorSearchQuery)
     docs = list(cursor)
     as_output = docs[0]['text']
