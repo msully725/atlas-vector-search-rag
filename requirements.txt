@@ -1,7 +1,9 @@
-langchain
+# langchain
+# openai
+langchain==0.0.316
+openai==0.28.1
 pymongo
 bs4
-openai
 tiktoken
 gradio
 requests
