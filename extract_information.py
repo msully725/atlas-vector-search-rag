@@ -18,8 +18,9 @@ collection = client[dbName][collectionName]
 embeddings = OpenAIEmbeddings(openai_api_key=key_param.openai_api_key)
 
 # Initialize the Vector Store
+# https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/vectorstores/mongodb_atlas.py#L56
+vectorStore = MongoDBAtlasVectorSearch( collection, embeddings, index_name="vector_index" )
 
-vectorStore = MongoDBAtlasVectorSearch( collection, embeddings )
 
 mongoQuery = [
     {
@@ -51,12 +52,19 @@ def query_data(query):
     # Perform Atlas Vector Search using Langchain's vectorStore
     # similarity_search returns MongoDB documents most similar to the query    
 
-    # docs = vectorStore.similarity_search(query, K=5)
-    # as_output = docs[0].page_content
+    #
+    # Langcahin Vector Store query
+    # https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/vectorstores/mongodb_atlas.py#L183
+    #
+    docs = vectorStore.similarity_search(query, K=1)
+    as_output = docs[0].page_content
 
-    cursor = collection.aggregate(mongoQueryVectorSearch)
-    docs = list(cursor)
-    as_output = docs[0]['text']
+    #
+    # Hand rolled MongoDB search aggregate query
+    #
+    # cursor = collection.aggregate(mongoQueryVectorSearch)
+    # docs = list(cursor)
+    # as_output = docs[0]['text']
 
     # Leveraging Atlas Vector Search paired with Langchain's QARetriever
 
