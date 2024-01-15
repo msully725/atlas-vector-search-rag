@@ -72,8 +72,7 @@ def query_data(query):
     # If it's not specified (for example like in the code below),
     # then the default OpenAI model used in LangChain is OpenAI GPT-3.5-turbo, as of August 30, 2023
     
-    llm = OpenAI(openai_api_key=key_param.openai_api_key, temperature=0)
-
+    llm = OpenAI(openai_api_key=key_param.openai_api_key, temperature=0, model="gpt-3.5-turbo-instruct")
 
     # Get VectorStoreRetriever: Specifically, Retriever for MongoDB VectorStore.
     # Implements _get_relevant_documents which retrieves documents relevant to a query.
