@@ -18,16 +18,53 @@ collection = client[dbName][collectionName]
 embeddings = OpenAIEmbeddings(openai_api_key=key_param.openai_api_key)
 
 # Initialize the Vector Store
+# https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/vectorstores/mongodb_atlas.py#L56
+vectorStore = MongoDBAtlasVectorSearch( collection, embeddings, index_name="vector_index" )
 
-vectorStore = MongoDBAtlasVectorSearch( collection, embeddings )
+
+mongoQuery = [
+    {
+        "$search": {
+            "index": "vector_index",
+            "knnBeta": {
+                "vector": embeddings.embed_query('goku'),
+                "path": "embedding",
+                "k": 2,
+            }
+        }
+    }
+]
+
+mongoQueryVectorSearch = [
+    {
+        "$vectorSearch": {
+            "queryVector": embeddings.embed_query('Who is Goku?'),
+            "path": "embedding",
+            "numCandidates": 2,
+            "index": "vector_index",
+            "limit": 1
+        }
+    }
+]
 
 def query_data(query):
     # Convert question to vector using OpenAI embeddings
     # Perform Atlas Vector Search using Langchain's vectorStore
     # similarity_search returns MongoDB documents most similar to the query    
 
+    #
+    # Langcahin Vector Store query
+    # https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/vectorstores/mongodb_atlas.py#L183
+    #
     docs = vectorStore.similarity_search(query, K=1)
     as_output = docs[0].page_content
+
+    #
+    # Hand rolled MongoDB search aggregate query
+    #
+    # cursor = collection.aggregate(mongoQueryVectorSearch)
+    # docs = list(cursor)
+    # as_output = docs[0]['text']
 
     # Leveraging Atlas Vector Search paired with Langchain's QARetriever
 
@@ -35,8 +72,7 @@ def query_data(query):
     # If it's not specified (for example like in the code below),
     # then the default OpenAI model used in LangChain is OpenAI GPT-3.5-turbo, as of August 30, 2023
     
-    llm = OpenAI(openai_api_key=key_param.openai_api_key, temperature=0)
-
+    llm = OpenAI(openai_api_key=key_param.openai_api_key, temperature=0, model="gpt-3.5-turbo-instruct")
 
     # Get VectorStoreRetriever: Specifically, Retriever for MongoDB VectorStore.
     # Implements _get_relevant_documents which retrieves documents relevant to a query.

@@ -1,0 +1,11 @@
+langchain==0.0.321
+openai==0.28.1
+openai
+pymongo
+bs4
+tiktoken
+gradio
+requests
+lxml
+argparse
+unstructured
